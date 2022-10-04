@@ -24,6 +24,7 @@ import org.testcontainers.containers.*;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.lifecycle.Startables;
+import org.testcontainers.redpanda.RedpandaContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
@@ -46,11 +47,7 @@ public class AbstractIntegrationTest {
     new PostgreSQLContainer<>("postgres:14-alpine")
       .withCopyFileToContainer(MountableFile.forClasspathResource("schema.sql"), "");
 
-  static KafkaContainer kafka = new KafkaContainer(
-    DockerImageName.parse("confluentinc/cp-kafka:5.4.6"));
-
-  static ToxiproxyContainer toxyproxy = new ToxiproxyContainer(
-    DockerImageName.parse("shopify/toxiproxy:2.1.0")).withNetwork(network);
+  static RedpandaContainer kafka = new RedpandaContainer("docker.redpanda.com/vectorized/redpanda:v22.2.1");
 
   @DynamicPropertySource
   public static void setupThings(DynamicPropertyRegistry registry) throws IOException {
@@ -64,24 +61,6 @@ public class AbstractIntegrationTest {
     registry.add("spring.redis.port", redis::getFirstMappedPort);
 
     registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
-  }
-
-  static  TcpProxy tcpProxy;
-
-  public static void createProxy() {
-    StaticTcpProxyConfig config = new StaticTcpProxyConfig(
-      5900,
-      postgreSQLContainer.getHost(),
-      postgreSQLContainer.getFirstMappedPort()
-    );
-    config.setWorkerCount(1);
-    tcpProxy = new TcpProxy(config);
-    tcpProxy.start();
-  }
-
-  @AfterAll
-  public static void stopProxy() {
-    tcpProxy.shutdown();
   }
 
   protected RequestSpecification requestSpecification;
