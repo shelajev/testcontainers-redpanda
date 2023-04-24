@@ -45,7 +45,7 @@ public class AbstractIntegrationTest {
 
   static PostgreSQLContainer<?> postgreSQLContainer =
     new PostgreSQLContainer<>("postgres:14-alpine")
-      .withCopyFileToContainer(MountableFile.forClasspathResource("schema.sql"), "");
+      .withCopyFileToContainer(MountableFile.forClasspathResource("schema.sql"), "/docker-entrypoint-initdb.d/");
 
   static RedpandaContainer kafka = new RedpandaContainer("docker.redpanda.com/vectorized/redpanda:v22.2.1");
 
